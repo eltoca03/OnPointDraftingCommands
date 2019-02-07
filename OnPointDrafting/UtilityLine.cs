@@ -23,7 +23,7 @@ namespace OnPointDrafting
 	  while (true)
 	  {
 		//Prompt options for utility line
-		PromptEntityOptions promptUtilityLineOpt = new PromptEntityOptions("\nSelect Utility Line: ");
+		PromptEntityOptions promptUtilityLineOpt = new PromptEntityOptions("Select Utility Line: \n");
 		PromptEntityResult utilityLineResults = ed.GetEntity(promptUtilityLineOpt);
 
 		if (utilityLineResults.Status != PromptStatus.OK)
@@ -38,6 +38,12 @@ namespace OnPointDrafting
 		  //access block table and create block table record
 		  BlockTable bt = trans.GetObject(database.BlockTableId, OpenMode.ForRead) as BlockTable;
 		  BlockTableRecord btr = trans.GetObject(bt[BlockTableRecord.ModelSpace], OpenMode.ForWrite) as BlockTableRecord;
+		  LinetypeTable linetypeTable = trans.GetObject(database.LinetypeTableId, OpenMode.ForRead) as LinetypeTable;
+
+		  if (!linetypeTable.Has("BLDG"))
+		  { ed.WriteMessage("Please load Linetype:BLDG \n");
+			return;
+		  }
 
 		  //get the running line
 		  Type type = trans.GetObject(utilityLineResults.ObjectId, OpenMode.ForRead).GetType();
@@ -92,7 +98,7 @@ namespace OnPointDrafting
 			{
 			  Line newLine = (Line)entity;
 			  newLine.LinetypeScale = .05;
-			  if (offset == 1.5)
+			  if (offset < 1.5)
 			  {
 				newLine.Linetype = "CONTINUOUS";
 			  }
@@ -119,7 +125,7 @@ namespace OnPointDrafting
 			}
 			else
 			{
-			  ed.WriteMessage("\nLine has no width. Utility linetype with size must be used.\n");
+			  ed.WriteMessage("Line has no width. Utility linetype with size must be used.\n");
 			  break;
 			}
 			
@@ -131,7 +137,27 @@ namespace OnPointDrafting
 			{
 			  Polyline newLine = (Polyline)entity;
 			  newLine.LinetypeScale = .05;
-			  if (offset == 1.5)
+			  if (offset < 1.5)
+			  {
+				newLine.Linetype = "CONTINUOUS";
+			  }
+			  else
+			  {
+				newLine.Linetype = "BLDG";
+			  }
+
+			  newLine.LineWeight = LineWeight.LineWeight009;
+			  btr.AppendEntity(newLine);
+			  trans.AddNewlyCreatedDBObject(newLine, true);
+			}
+
+			DBObjectCollection objCollection2 = polyline.GetOffsetCurves(-offset);
+
+			foreach (Entity entity in objCollection2)
+			{
+			  Polyline newLine = (Polyline)entity;
+			  newLine.LinetypeScale = .05;
+			  if (offset < 1.5)
 			  {
 				newLine.Linetype = "CONTINUOUS";
 			  }
@@ -145,29 +171,8 @@ namespace OnPointDrafting
 			  btr.AppendEntity(newLine);
 			  trans.AddNewlyCreatedDBObject(newLine, true);
 			}
-
-			DBObjectCollection objCollection2 = polyline.GetOffsetCurves(-offset);
-
-			foreach (Entity entity in objCollection2)
-			{
-			  Polyline newLine = (Polyline)entity;
-			  newLine.LinetypeScale = .05;
-			  if (offset == 1.5)
-			  {
-				newLine.Linetype = "CONTINUOUS";
-			  }
-			  else
-			  {
-				newLine.Linetype = "BLDG";
-			  }
-
-			  newLine.LineWeight = LineWeight.LineWeight009;
-			  btr.AppendEntity(newLine);
-			  trans.AddNewlyCreatedDBObject(newLine, true);
-			}
 		  }
-		  else { ed.WriteMessage("\nMust me Line or Polyline.\n"); }
-
+		  else { ed.WriteMessage("Must me Line or Polyline. \n"); }
 
 		  trans.Commit();
 		}
