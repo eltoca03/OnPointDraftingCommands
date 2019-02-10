@@ -55,15 +55,21 @@ namespace OnPointDrafting
 
 	  //Prompt options for running line
 	  PromptNestedEntityOptions promptRunningLineOpt = new PromptNestedEntityOptions("\nSelect Running Line");
+	  
+	  //must select an object
 	  promptRunningLineOpt.AllowNone = false;
 	  PromptNestedEntityResult runningLineResults = ed.GetNestedEntity(promptRunningLineOpt);
 
 	  if (runningLineResults.Status != PromptStatus.OK)
 	  {
-		ed.WriteMessage("\nThe selected object is not running line");
 		return;
 	  }
-
+	  //only allow polylines
+	  if (runningLineResults.GetType() != typeof(Polyline))
+	  {
+		ed.WriteMessage("\nObject selected not Running Line ");
+		
+	  }
 	  //prompt for line number
 	  PromptStringOptions pStrOpts = new PromptStringOptions("\nEnter Line Number: ");
 	  pStrOpts.AllowSpaces = false;
@@ -73,24 +79,22 @@ namespace OnPointDrafting
 	  {
 		return;
 	  }
-
-	  //prompt user to select object only allow DFWT blocks 
+	  /******************************************************
+	    prompt user to select block
+	  ******************************************************/
 	  PromptNestedEntityOptions pneo = new PromptNestedEntityOptions("\nSelect DFWT Block");
 	  pneo.AllowNone = false;
 
 	  //check prompt results from user else return
-	  PromptNestedEntityResult pner = ed.GetNestedEntity(pneo);
+	  PromptNestedEntityResult nestedBlock = ed.GetNestedEntity(pneo);
 
-	  if (pner.Status != PromptStatus.OK)
+	  if (nestedBlock.Status != PromptStatus.OK)
 	  {
 		return;
 	  }
 
 	  while (true)
 	  {
-
-
-		//just adding a comment to this line
 		Transaction trans = database.TransactionManager.StartTransaction();
 		using (trans)
 		{
@@ -101,7 +105,7 @@ namespace OnPointDrafting
 		  //get the running line
 		  Polyline runningLine = trans.GetObject(runningLineResults.ObjectId, OpenMode.ForRead) as Polyline;
 
-		  ObjectId[] containerIds = pner.GetContainers();
+		  ObjectId[] containerIds = nestedBlock.GetContainers();
 
 		  foreach (ObjectId id in containerIds)
 		  {
@@ -141,10 +145,14 @@ namespace OnPointDrafting
 		  switch (blkRef.Name.ToUpper())
 		  {
 			case "CPR":
-			  msAndKwds = "\nSelect Type:[Drop Bucket/Tap pedestal/ Splitter Pedestal]";
-			  kwds = "'Drop Bucket' 'Tap Pedestal' 'Tap Splitter'";
+			  //msAndKwds = "\nSelect Type:[Drop Bucket/Tap pedestal/Splitter Pedestal]";
+			  //kwds = "'Drop Bucket' 'Tap Pedestal' 'Tap Splitter'";
 
-			  selectCalloutOptions = new PromptEntityOptions(msAndKwds, kwds);
+			  selectCalloutOptions = new PromptEntityOptions("\n Select Type: ");
+			  selectCalloutOptions.Keywords.Add("Drop bucket");
+			  selectCalloutOptions.Keywords.Add("Tap pedestal");
+			  selectCalloutOptions.Keywords.Add("Splitter pedestal");
+
 			  selectedCalloutResults = ed.GetEntity(selectCalloutOptions);
 
 			  switch (selectedCalloutResults.StringResult.ToUpper())
@@ -269,15 +277,15 @@ namespace OnPointDrafting
 	  PromptNestedEntityOptions pneo = new PromptNestedEntityOptions(
 		  "\nSelect nested entity:");
 
-	  PromptNestedEntityResult pner = ed.GetNestedEntity(pneo);
+	  PromptNestedEntityResult nestedBlock = ed.GetNestedEntity(pneo);
 
-	  if (pner.Status != PromptStatus.OK)
+	  if (nestedBlock.Status != PromptStatus.OK)
 		return;
 
 	  using (Transaction Tx = doc.TransactionManager.StartTransaction())
 	  {
 		//Containers
-		ObjectId[] containerIds = pner.GetContainers();
+		ObjectId[] containerIds = nestedBlock.GetContainers();
 
 		foreach (ObjectId id in containerIds)
 		{
@@ -291,7 +299,7 @@ namespace OnPointDrafting
 		  }
 		}
 
-		Entity entity = Tx.GetObject(pner.ObjectId, OpenMode.ForRead)
+		Entity entity = Tx.GetObject(nestedBlock.ObjectId, OpenMode.ForRead)
 			as Entity;
 
 		ed.WriteMessage("\nEntity: " + entity.ToString());
