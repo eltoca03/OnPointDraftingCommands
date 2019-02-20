@@ -142,16 +142,17 @@ namespace OnPointDrafting
 			str = str + " LINE " + pStrRes.StringResult;
 
 		  //  
+		  selectCalloutOptions = new PromptEntityOptions("\n Select Type: ");
 		  switch (blkRef.Name.ToUpper())
 		  {
 			case "CPR":
 			  //msAndKwds = "\nSelect Type:[Drop Bucket/Tap pedestal/Splitter Pedestal]";
 			  //kwds = "'Drop Bucket' 'Tap Pedestal' 'Tap Splitter'";
 
-			  selectCalloutOptions = new PromptEntityOptions("\n Select Type: ");
 			  selectCalloutOptions.Keywords.Add("Drop bucket");
 			  selectCalloutOptions.Keywords.Add("Tap pedestal");
 			  selectCalloutOptions.Keywords.Add("Splitter pedestal");
+			  
 
 			  selectedCalloutResults = ed.GetEntity(selectCalloutOptions);
 
