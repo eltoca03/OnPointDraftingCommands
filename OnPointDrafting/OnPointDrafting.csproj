@@ -58,7 +58,7 @@
   <ItemGroup>
     <Compile Include="CalloutsDropdown.cs" />
     <Compile Include="CalloutsRC.cs" />
-    <Compile Include="ConduitLabel.cs" />
+    <Compile Include="Stations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UtilityLine.cs" />
   </ItemGroup>
