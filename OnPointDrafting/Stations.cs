@@ -109,19 +109,38 @@ namespace OnPointDrafting
 		  MText dBText = new MText();
 		  //format numbers for context
 		  dBText.Contents = FormatStation(i* interval);
-		  dBText.Attachment = AttachmentPoint.MiddleCenter;
+		  
 		  dBText.BackgroundFill = true;
 		  dBText.BackgroundScaleFactor = 1.25;
 		  if (flip)
 		  {
-			dBText.Location = p1 - (ang.GetNormal() * 3);
+			if (line.Angle > Math.PI)
+			{
+			  dBText.Attachment = AttachmentPoint.BottomCenter;
+			}
+			else
+			{
+			  dBText.Attachment = AttachmentPoint.TopCenter;
+			}
+			
+			dBText.Location = p1 - (ang.GetNormal() * 2);
 		  }
 		  else
 		  {
-			dBText.Location = p1 + (ang.GetNormal() * 3);
+			if (line.Angle > Math.PI)
+			{
+			  dBText.Attachment = AttachmentPoint.TopCenter;
+			}
+			else
+			{
+			  dBText.Attachment = AttachmentPoint.BottomCenter;
+			}
+			
+			dBText.Location = p1 + (ang.GetNormal() * 2);
 		  }
 		  
 		  dBText.Layer = "Text-2";
+		  dBText.Height = 2.2;
 
 		  if (line.Angle > (Math.PI / 2) && (line.Angle <= Math.PI))
 		  {
@@ -188,10 +207,10 @@ namespace OnPointDrafting
 	  PromptEntityResult per = ed.GetEntity(peo);
 	  if (per.Status != PromptStatus.OK) return;
 
-	  PromptStringOptions pso = new PromptStringOptions("Up <Down>: ");
-	  PromptResult pr = ed.GetString(pso);
+	  //PromptStringOptions pso = new PromptStringOptions("Up <Down>: ");
+	  //PromptResult pr = ed.GetString(pso);
 
-	  if (pr.Status != PromptStatus.OK) return;
+	  //if (pr.Status != PromptStatus.OK) return;
 
 	  Transaction trans = database.TransactionManager.StartTransaction();
 
@@ -199,13 +218,24 @@ namespace OnPointDrafting
 	  {
 		MText station = (MText)trans.GetObject(per.ObjectId, OpenMode.ForWrite);
 
-		if (pr.StringResult.ToUpper().Contains("U"))
+		//if (pr.StringResult.ToUpper().Contains("U"))
+		//{
+		//  station.Location = GetPoint(station.Location.X, station.Location.Y, station.Rotation + (Math.PI * -1.5));
+		//}
+		//else
+		//{
+		//  station.Location = GetPoint(station.Location.X, station.Location.Y, station.Rotation + (Math.PI * 1.5));
+		//}
+
+		if (station.Attachment == AttachmentPoint.TopCenter)
 		{
 		  station.Location = GetPoint(station.Location.X, station.Location.Y, station.Rotation + (Math.PI * -1.5));
+		  station.Attachment = AttachmentPoint.BottomCenter;
 		}
 		else
 		{
 		  station.Location = GetPoint(station.Location.X, station.Location.Y, station.Rotation + (Math.PI * 1.5));
+		  station.Attachment = AttachmentPoint.TopCenter;
 		}
 		
 		trans.Commit();
@@ -215,7 +245,7 @@ namespace OnPointDrafting
 
 	public Point3d GetPoint(double x, double y, double ang)
 	{
-	  Point3d pt = new Point3d(new double[] { 6 * Math.Cos(ang) + x, 6 * Math.Sin(ang) + y, 0 });
+	  Point3d pt = new Point3d(new double[] { 4.2 * Math.Cos(ang) + x, 4.2 * Math.Sin(ang) + y, 0 });
 
 	  return pt;
 	}
