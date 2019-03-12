@@ -7,7 +7,7 @@ using Autodesk.AutoCAD.Geometry;
 
 namespace OnPointDrafting
 {
-  public class Matchline
+  class Matchline
   {
 	//get the current document and database
 	Document acDoc = Application.DocumentManager.MdiActiveDocument;

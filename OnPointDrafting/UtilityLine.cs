@@ -9,7 +9,7 @@ using Autodesk.AutoCAD.Geometry;
 
 namespace OnPointDrafting
 {
-  public class UtilityLine
+  class UtilityLine
   {
 	Document doc = Application.DocumentManager.MdiActiveDocument;
 	Database database = Application.DocumentManager.MdiActiveDocument.Database;

@@ -10,7 +10,7 @@ namespace OnPointDrafting
 
 {
 
-  public class Commands : IExtensionApplication
+  class Commands : IExtensionApplication
 
   {
 	public void Initialize()

@@ -104,9 +104,10 @@ namespace OnPointDrafting
 		  ang = ang.TransformBy(Matrix3d.Rotation(Math.PI / 2, polyline.Normal, Point3d.Origin));
 		  // create a line by substracting and adding the vector to the point (displacing the point
 		  Line line = new Line(p1 - ang, p1 + ang);
-		  line.Layer = "Text-2";
+		  //line.Layer = "Text-2";
 		  //create mtext place end of new line 
 		  MText dBText = new MText();
+		  dBText.SetDatabaseDefaults();
 		  //format numbers for context
 		  dBText.Contents = FormatStation(i* interval);
 		  
@@ -139,8 +140,8 @@ namespace OnPointDrafting
 			dBText.Location = p1 + (ang.GetNormal() * 2);
 		  }
 		  
-		  dBText.Layer = "Text-2";
-		  dBText.Height = 2.2;
+		  //dBText.Layer = "Text-2";
+		  //dBText.Height = 2.2;
 
 		  if (line.Angle > (Math.PI / 2) && (line.Angle <= Math.PI))
 		  {
@@ -163,7 +164,8 @@ namespace OnPointDrafting
 		}
 		trans.Commit();
 	  }
-	  
+
+	  TrialVersionMessageBox();
 	}
 
 	private string FormatStation(int v)
@@ -249,6 +251,17 @@ namespace OnPointDrafting
 
 	  return pt;
 	}
-	
+
+	public void TrialVersionMessageBox()
+	{
+	  Application.ShowAlertDialog("This is a trial version!!");
+	  Editor ed = doc.Editor;
+	  PromptStringOptions pso = new PromptStringOptions("");
+
+	  ed.GetString(pso);
+
+	  ed.Command("._undo", "1");
+	}
+
   }
 }
