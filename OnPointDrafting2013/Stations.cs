@@ -94,7 +94,7 @@ namespace OnPointDrafting
 		Double len = polyline.Length;
 		int count = (int)len / interval;
 
-		for (int i = 0; i <= count; i++)
+		for (int i = 1; i <= count; i++)
 		{
 		  Point3d p1 = polyline.GetPointAtDist(i * interval);
 		  Vector3d ang = polyline.GetFirstDerivative(polyline.GetParameterAtPoint(p1));
@@ -104,7 +104,7 @@ namespace OnPointDrafting
 		  ang = ang.TransformBy(Matrix3d.Rotation(Math.PI / 2, polyline.Normal, Point3d.Origin));
 		  // create a line by substracting and adding the vector to the point (displacing the point
 		  Line line = new Line(p1 - ang, p1 + ang);
-		  line.Layer = "Text-2";
+		  line.Layer = "D-UG";
 		  //create mtext place end of new line 
 		  MText dBText = new MText();
 		  //format numbers for context
@@ -139,7 +139,7 @@ namespace OnPointDrafting
 			dBText.Location = p1 + (ang.GetNormal() * 2);
 		  }
 		  
-		  dBText.Layer = "Text-2";
+		  dBText.Layer = "D-UG";
 		  dBText.Height = 2.2;
 
 		  if (line.Angle > (Math.PI / 2) && (line.Angle <= Math.PI))
