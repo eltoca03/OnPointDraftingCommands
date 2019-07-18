@@ -115,7 +115,7 @@ namespace OnPointDrafting
 	}
 
 	//calculate the midpoint 
-	public Point3d getMidPoint(Line a)
+	public static Point3d getMidPoint(Line a)
 	{
 
 

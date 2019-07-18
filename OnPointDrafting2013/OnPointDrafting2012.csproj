@@ -50,6 +50,7 @@
   <ItemGroup>
     <Compile Include="Matchline.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Span.cs" />
     <Compile Include="Stations.cs" />
     <Compile Include="utilityLine2012.cs" />
   </ItemGroup>
