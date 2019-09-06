@@ -64,6 +64,8 @@ namespace OnPointDrafting
                 var curSpace = (BlockTableRecord)trans.GetObject(database.CurrentSpaceId, OpenMode.ForWrite);
                 Polyline polyline = (Polyline)trans.GetObject(per.ObjectId, OpenMode.ForRead);
 
+				BringPolesForward(polyline);
+
                 for (int i = 0; i < polyline.NumberOfVertices; i++)
                 {
                     if (i+1 != polyline.NumberOfVertices)
@@ -146,5 +148,57 @@ namespace OnPointDrafting
 
             return dBText;
         }
-    }
+
+		public void BringPolesForward(Polyline polyline)
+		{
+			Point3dCollection vertices = new Point3dCollection();
+
+			for (int i = 0; i < polyline.NumberOfVertices; i++)
+			{
+				vertices.Add(polyline.GetPoint3dAt(i));
+			}
+
+			//get fence selection results
+			PromptSelectionResult promptSelectionResult = doc.Editor.SelectFence(vertices);
+			if (promptSelectionResult.Status != PromptStatus.OK)
+			{
+				return;
+			}
+
+			Transaction trans = Application.DocumentManager.MdiActiveDocument.Database.TransactionManager.StartTransaction();
+
+			using (trans)
+			{
+				//Open current space
+				var curSpace = (BlockTableRecord)trans.GetObject(database.CurrentSpaceId, OpenMode.ForRead);
+				var drawOrder = (DrawOrderTable)trans.GetObject(curSpace.DrawOrderTableId, OpenMode.ForWrite);
+
+				ObjectIdCollection idCollection = new ObjectIdCollection();
+
+				//iterate troughth selection set and poles along line
+				foreach (SelectedObject selectedObject in promptSelectionResult.Value)
+				{
+					BlockReference blockReference = null;
+					try
+					{
+						blockReference = (BlockReference)trans.GetObject(selectedObject.ObjectId, OpenMode.ForRead);
+					}
+					catch
+					{
+						//this means that the selected object was not a BlockReference type....so continue to next
+						continue;
+					}
+
+					if (blockReference != null && blockReference.Name.ToLower() == "pp")
+					{
+						idCollection.Add(blockReference.ObjectId);
+					}
+					
+				}
+
+				drawOrder.MoveToTop(idCollection);
+				trans.Commit();
+			}
+		}
+	}
 }
