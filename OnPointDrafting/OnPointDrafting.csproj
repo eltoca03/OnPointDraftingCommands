@@ -63,6 +63,7 @@
     <Compile Include="Stations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="UtilityLine.cs" />
+    <Compile Include="UtilityText.cs" />
   </ItemGroup>
   <ItemGroup>
     <COMReference Include="stdole">
