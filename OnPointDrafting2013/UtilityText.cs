@@ -8,7 +8,7 @@ using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Geometry;
 using System.Linq;
 
-namespace OnPointDrafting
+namespace OnPointDrafting2012
 {
 	public class UtilityText
 	{
@@ -71,6 +71,7 @@ namespace OnPointDrafting
 
 					line.EndPoint = PolarPoints(text.AlignmentPoint, line.Angle, -dist);
 					text.Height = 2.0;
+
 					blockTableRecord.AppendEntity(line2);
 					blockTableRecord.AppendEntity(text);
 					trans.AddNewlyCreatedDBObject(line2, true);
