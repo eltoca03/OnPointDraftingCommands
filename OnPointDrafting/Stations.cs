@@ -15,158 +15,187 @@ namespace OnPointDrafting
 	Database database = Application.DocumentManager.MdiActiveDocument.Database;
 
 	[CommandMethod("sta")]
-	public void Sta()
-	{
-	  Editor ed;
-	  ed = doc.Editor;
+        public void Sta()
+        {
+            Editor ed = doc.Editor;
 
-	  PromptEntityOptions peo = new PromptEntityOptions("\nSelect running line: ");
-	  peo.SetRejectMessage("\nNot a polyline");
-	  peo.AddAllowedClass(typeof(Polyline), false);
-	  PromptEntityResult per = ed.GetEntity(peo);
+            // Prompt for running line
+            Polyline polyline;
+            if (!TryGetPolylineEntity(ed, out polyline))
+                return;
 
-	  if (per.Status != PromptStatus.OK) return;
+            // Prompt for text side (Top/Bottom)
+            bool flip = PromptForTextSide(ed);
 
-	  PromptStringOptions pso = new PromptStringOptions("\nSelect text side Bottom <Top>: ");
-	  PromptResult pr = ed.GetString(pso);
+            // Prompt for interval
+            int interval = PromptForInterval(ed);
 
-	  if (pr.Status != PromptStatus.OK) return;
+            // Generate stations
+            GenerateStations(polyline, flip, interval);
+        }
 
-	  bool flip = false;
+        private bool TryGetPolylineEntity(Editor ed, out Polyline polyline)
+        {
+            polyline = null;
 
-	  while (true)
-	  {
-		if (pr.StringResult.Length > 0)
-		{
-		  if (pr.StringResult.ToUpper().Contains("T") || pr.StringResult.ToUpper().Contains("TOP"))
-		  {
-			break;
-		  }
-		  else if (pr.StringResult.ToUpper().Contains("B") || pr.StringResult.ToUpper().Contains("BOTTOM"))
-		  {
-			flip = true;
-			break;
-		  }
-		  else
-		  {
-			pr = ed.GetString(pso);
-			if (pr.Status != PromptStatus.OK) return;
-		  }
-		}
-		break; 
-	  }
+            PromptEntityOptions peo = new PromptEntityOptions("\nSelect running line: ");
+            peo.SetRejectMessage("\nNot a polyline");
+            peo.AddAllowedClass(typeof(Polyline), false);
+
+            PromptEntityResult per = ed.GetEntity(peo);
+            if (per.Status != PromptStatus.OK)
+                return false;
 
 
-	  /****************************************/
-	  int interval = 100;
-	  pso = new PromptStringOptions("\nSelect interval <100>: ");
-	  pr = ed.GetString(pso);
+            try
+            {
+                Transaction trans = database.TransactionManager.StartTransaction();
 
-	  if (pr.Status != PromptStatus.OK) return;
+                using (trans)
+                {
+                    polyline = (Polyline)trans.GetObject(per.ObjectId, OpenMode.ForRead);
+                    return true;
+                }
+            }
+            catch (System.Exception)
+            {
 
-	  while (true)
-	  {
-		if (pr.StringResult.Length > 0)
-		{
-		  if (int.TryParse(pr.StringResult, out int ignoreme))
-		  {
-			interval = int.Parse(pr.StringResult);
-			break;
-		  }
-		  else
-		  {
-			pso = new PromptStringOptions("\nPlease enter an interger: ");
-			pr = ed.GetString(pso);
-			if (pr.Status != PromptStatus.OK) return;
-		  }
-		}
-		else break;
-	  }
-	  /****************************************/
-	  //busca este commentario online eltoca03..drafting
-	  Transaction trans = database.TransactionManager.StartTransaction();
+                return false;
+            }
+            
+        }
 
-	  using (trans)
-	  {
-		var curSpace = (BlockTableRecord)trans.GetObject(database.CurrentSpaceId, OpenMode.ForWrite);
-		Polyline polyline = (Polyline)trans.GetObject(per.ObjectId, OpenMode.ForRead);
+        private bool PromptForTextSide(Editor ed)
+        {
+            PromptStringOptions pso = new PromptStringOptions("\nSelect text side Bottom <Top>: ");
+            PromptResult pr = ed.GetString(pso);
 
-		Double len = polyline.Length;
-		int count = (int)len / interval;
+            if (pr.Status != PromptStatus.OK)
+                return false;
 
-		for (int i = 1; i <= count; i++)
-		{
-		  Point3d p1 = polyline.GetPointAtDist(i * interval);
-		  Vector3d ang = polyline.GetFirstDerivative(polyline.GetParameterAtPoint(p1));
-		  //scale the vector by 1.5
-		  ang = ang.GetNormal() * 1.5;
-		  //rotate the vector
-		  ang = ang.TransformBy(Matrix3d.Rotation(Math.PI / 2, polyline.Normal, Point3d.Origin));
-		  // create a line by substracting and adding the vector to the point (displacing the point
-		  Line line = new Line(p1 - ang, p1 + ang);
-		  line.Layer = "D-UG";
-		  //create mtext place end of new line 
-		  MText dBText = new MText();
-		  //format numbers for context
-		  dBText.Contents = FormatStation(i* interval);
-		  
-		  dBText.BackgroundFill = true;
-		  dBText.BackgroundScaleFactor = 1.25;
-		  if (flip)
-		  {
-			if (line.Angle > Math.PI)
-			{
-			  dBText.Attachment = AttachmentPoint.BottomCenter;
-			}
-			else
-			{
-			  dBText.Attachment = AttachmentPoint.TopCenter;
-			}
-			
-			dBText.Location = p1 - (ang.GetNormal() * 2);
-		  }
-		  else
-		  {
-			if (line.Angle > Math.PI)
-			{
-			  dBText.Attachment = AttachmentPoint.TopCenter;
-			}
-			else
-			{
-			  dBText.Attachment = AttachmentPoint.BottomCenter;
-			}
-			
-			dBText.Location = p1 + (ang.GetNormal() * 2);
-		  }
-		  
-		  dBText.Layer = "D-UG";
-		  dBText.Height = 2.2;
+            while (true)
+            {
+                if (pr.StringResult.Length > 0)
+                {
+                    if (pr.StringResult.ToUpper().Contains("T") || pr.StringResult.ToUpper().Contains("TOP"))
+                        return false;
 
-		  if (line.Angle > (Math.PI / 2) && (line.Angle <= Math.PI))
-		  {
-			dBText.Rotation = line.Angle - (Math.PI / 2);
-		  }
-		  else if (line.Angle > Math.PI)
-		  {
-			dBText.Rotation = line.Angle + (Math.PI / 2);
-		  }
-		  else
-		  {
-			dBText.Rotation = (2 * Math.PI) - Math.Abs(line.Angle - (Math.PI / 2));
-		  }
+                    if (pr.StringResult.ToUpper().Contains("B") || pr.StringResult.ToUpper().Contains("BOTTOM"))
+                        return true;
 
-		  curSpace.AppendEntity(dBText);
-		  trans.AddNewlyCreatedDBObject(dBText, true);
+                    pr = ed.GetString(pso);
+                    if (pr.Status != PromptStatus.OK)
+                        return false;
+                }
+                break;
+            }
 
-		  curSpace.AppendEntity(line);
-		  trans.AddNewlyCreatedDBObject(line, true);
-		}
-		trans.Commit();
-	  }
-	  
-	}
+            return false;
+        }
 
-	private string FormatStation(int v)
+        private int PromptForInterval(Editor ed)
+        {
+            int interval = 100;
+            PromptStringOptions pso = new PromptStringOptions("\nSelect interval <100>: ");
+            PromptResult pr = ed.GetString(pso);
+
+            if (pr.Status != PromptStatus.OK)
+                return interval;
+
+            while (true)
+            {
+                if (pr.StringResult.Length > 0)
+                {
+                    if (int.TryParse(pr.StringResult, out int result))
+                        return result;
+
+                    pso = new PromptStringOptions("\nPlease enter an integer: ");
+                    pr = ed.GetString(pso);
+                    if (pr.Status != PromptStatus.OK)
+                        return interval;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            return interval;
+        }
+
+        private void GenerateStations(Polyline polyline, bool flip, int interval)
+        {
+            Transaction trans = database.TransactionManager.StartTransaction();
+
+            using (trans)
+            {
+                var curSpace = (BlockTableRecord)trans.GetObject(database.CurrentSpaceId, OpenMode.ForWrite);
+
+                Double len = polyline.Length;
+                int count = (int)len / interval;
+
+                for (int i = 1; i <= count; i++)
+                {
+                    Point3d p1 = polyline.GetPointAtDist(i * interval);
+                    Vector3d ang = polyline.GetFirstDerivative(polyline.GetParameterAtPoint(p1));
+
+                    // Scale the vector by 1.5
+                    ang = ang.GetNormal() * 1.5;
+                    // Rotate the vector
+                    ang = ang.TransformBy(Matrix3d.Rotation(Math.PI / 2, polyline.Normal, Point3d.Origin));
+                    // Create a line by subtracting and adding the vector to the point (displacing the point)
+                    Line line = new Line(p1 - ang, p1 + ang);
+                    line.Layer = polyline.Layer;
+
+                    // Create mtext placed at the end of the new line
+                    MText dBText = new MText();
+                    // Format numbers for context
+                    dBText.Contents = FormatStation(i * interval);
+
+                    dBText.BackgroundFill = true;
+                    dBText.BackgroundScaleFactor = 1.25;
+                    if (flip)
+                    {
+                        if (line.Angle > Math.PI)
+                            dBText.Attachment = AttachmentPoint.BottomCenter;
+                        else
+                            dBText.Attachment = AttachmentPoint.TopCenter;
+
+                        dBText.Location = p1 - (ang.GetNormal() * 2);
+                    }
+                    else
+                    {
+                        if (line.Angle > Math.PI)
+                            dBText.Attachment = AttachmentPoint.TopCenter;
+                        else
+                            dBText.Attachment = AttachmentPoint.BottomCenter;
+
+                        dBText.Location = p1 + (ang.GetNormal() * 2);
+                    }
+
+                    dBText.Layer = polyline.Layer;
+                    dBText.Height = 2.2;
+
+                    if (line.Angle > (Math.PI / 2) && (line.Angle <= Math.PI))
+                        dBText.Rotation = line.Angle - (Math.PI / 2);
+                    else if (line.Angle > Math.PI)
+                        dBText.Rotation = line.Angle + (Math.PI / 2);
+                    else
+                        dBText.Rotation = (2 * Math.PI) - Math.Abs(line.Angle - (Math.PI / 2));
+
+                    curSpace.AppendEntity(dBText);
+                    trans.AddNewlyCreatedDBObject(dBText, true);
+
+                    curSpace.AppendEntity(line);
+                    trans.AddNewlyCreatedDBObject(line, true);
+                }
+
+                trans.Commit();
+            }
+        }
+
+
+        private string FormatStation(int v)
 	{
 	  string formattedStation = "";
 
