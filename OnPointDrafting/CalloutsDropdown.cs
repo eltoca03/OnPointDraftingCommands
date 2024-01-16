@@ -36,7 +36,9 @@ namespace OnPointDrafting
 	Document doc = Application.DocumentManager.MdiActiveDocument;
 	Database database = Application.DocumentManager.MdiActiveDocument.Database;
 
-	//
+	/// <summary>
+	/// NOT IN USE (Not Implemented) 
+	/// </summary>
 	[CommandMethod("QB")]
 	public void QB()
 	{
@@ -270,7 +272,10 @@ namespace OnPointDrafting
 		return;
 	  }
 	}
-
+	
+	/// <summary>
+	/// DO NOT USE
+	/// </summary>
 	[CommandMethod("NestEntSelect")]
 	public void NestEntSelect()
 	{

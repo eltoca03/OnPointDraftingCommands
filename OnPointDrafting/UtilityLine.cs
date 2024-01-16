@@ -13,9 +13,11 @@ namespace OnPointDrafting
     public class UtilityLine
     {
         private readonly Document doc = Application.DocumentManager.MdiActiveDocument;
-
+        /// <summary>
+        /// Need some description
+        /// </summary>
         [CommandMethod("OU")]
-        public void OffsetUtilityLine()
+        public void OU()
         {
             Editor ed = doc.Editor;
 

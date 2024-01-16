@@ -13,6 +13,9 @@ namespace OnPointDrafting
 	Document acDoc = Application.DocumentManager.MdiActiveDocument;
 	Database acCurDb = Application.DocumentManager.MdiActiveDocument.Database;
 
+	/// <summary>
+	/// Places a matchline text on the side selected.
+	/// </summary>
 	[CommandMethod("mln")]
 	public void mln()
 	{

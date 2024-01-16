@@ -13,7 +13,9 @@ namespace OnPointDrafting
     {
         Document doc = Application.DocumentManager.MdiActiveDocument;
         Database database = Application.DocumentManager.MdiActiveDocument.Database;
-
+        /// <summary>
+        /// Need some description 
+        /// </summary>
         [CommandMethod("AER")]
         public void AER ()
         {

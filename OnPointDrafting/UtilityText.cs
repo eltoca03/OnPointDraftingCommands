@@ -15,6 +15,9 @@ namespace OnPointDrafting
 		Document doc = Application.DocumentManager.MdiActiveDocument;
 		Database database = Application.DocumentManager.MdiActiveDocument.Database;
 
+		/// <summary>
+		/// TODO..Needs a summary
+		/// </summary>
 		[CommandMethod("UT")]
 		public void UT()
 		{
@@ -98,6 +101,9 @@ namespace OnPointDrafting
 			return temp + "\"" + new String(size.Where(Char.IsLetter).ToArray());
 		}
 
+		/// <summary>
+		/// need a summary
+		/// </summary>
 		[CommandMethod("mtx")]
 		public void mtx()
 		{

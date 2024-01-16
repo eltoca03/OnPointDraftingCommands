@@ -22,6 +22,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\OnPointDrafting.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -57,9 +58,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BlockStation.cs" />
     <Compile Include="CalloutsDropdown.cs" />
     <Compile Include="CalloutsRC.cs" />
     <Compile Include="CopyTabs.cs" />
+    <Compile Include="ListCommands.cs" />
     <Compile Include="Matchline.cs" />
     <Compile Include="Span.cs" />
     <Compile Include="Stations.cs" />

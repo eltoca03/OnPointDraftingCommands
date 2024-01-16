@@ -13,7 +13,10 @@ namespace OnPointDrafting
   {
 	Document doc = Application.DocumentManager.MdiActiveDocument;
 	Database database = Application.DocumentManager.MdiActiveDocument.Database;
-
+    
+        /// <summary>
+        /// some stuffffffff
+        /// </summary>
 	[CommandMethod("sta")]
         public void Sta()
         {
@@ -226,7 +229,7 @@ namespace OnPointDrafting
 	}
 
 	[CommandMethod("ft")]
-	public void Flip()
+	public void ft()
 	{
 	  Editor ed = doc.Editor;
 	  

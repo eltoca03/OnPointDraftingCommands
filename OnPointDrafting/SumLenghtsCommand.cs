@@ -9,8 +9,11 @@ namespace OnPointDrafting
 {
     public class SumLengthCommand
     {
+        /// <summary>
+        /// sum all materials in sheet
+        /// </summary>
         [CommandMethod("SUM")]
-        public void SumLengthCommandMethod()
+        public void SUM()
         {
             // Get the current document and database
             Document doc = Application.DocumentManager.MdiActiveDocument;
