@@ -112,8 +112,16 @@ namespace OnPointDrafting
                     // Clone the entity
                     Entity destEntity = sourceEntity.Clone() as Entity;
 
+                    if (destEntity is DBText)
+                    {
+                        if (sourceLayout.LayoutName == ((DBText)destEntity).TextString)
+                        {
+                            ((DBText)destEntity).TextString = @"%<\AcVar ctab \f ""%tc1"">%";
+                        }
+                    }
+
                     // Add the cloned entity to the destination layout
-                    destBtr.AppendEntity(destEntity);
+                    destBtr.AppendEntity(destEntity); 
                     tr.AddNewlyCreatedDBObject(destEntity, true);
                 }
             }
