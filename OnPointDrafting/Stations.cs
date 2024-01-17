@@ -178,6 +178,7 @@ namespace OnPointDrafting
 
                     dBText.Layer = polyline.Layer;
                     dBText.Height = 2.2;
+                    dBText.TextStyleId = GetTextStyleId("ROMANS", database);
 
                     if (line.Angle > (Math.PI / 2) && (line.Angle <= Math.PI))
                         dBText.Rotation = line.Angle - (Math.PI / 2);
@@ -281,6 +282,21 @@ namespace OnPointDrafting
 
 	  return pt;
 	}
-	
-  }
+
+        private static ObjectId GetTextStyleId(string styleName, Database db)
+        {
+            TextStyleTable textStyleTable = (TextStyleTable)db.TextStyleTableId.GetObject(OpenMode.ForRead);
+            if (textStyleTable.Has(styleName))
+            {
+                return textStyleTable[styleName];
+            }
+            else
+            {
+                // Handle the case when the specified text style doesn't exist
+                // You may want to create the text style here or handle it based on your requirements
+                throw new System.Exception("Text style '" + styleName + "' not found.");
+            }
+        }
+
+    }
 }
