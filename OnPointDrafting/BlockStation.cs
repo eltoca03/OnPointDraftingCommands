@@ -59,20 +59,27 @@ namespace OnPointDrafting
                             {
                                 BlockReference blockRef = dBObject as BlockReference;
                                 Double dist = 0;
+                                Double rotation = 0;
+                                Vector3d perpedicularVector;
                                 //ignore block where insertion point not on running line
                                 try
                                 {
-                                    dist = polyline.GetDistAtPoint(blockRef.Position); 
+                                    dist = polyline.GetDistAtPoint(blockRef.Position);
+                                    perpedicularVector = GetPerpedicularVector(polyline, blockRef.Position);
+                                    rotation = VectorToAngle(perpedicularVector);
                                 }
                                 catch (Autodesk.AutoCAD.Runtime.Exception e)
                                 {
                                     continue; 
                                 }
 
+
                                 blockDistances.Add(new BlockDistance
                                 {
                                     BlockReference = blockRef,
-                                    Distance = dist
+                                    Distance = dist,
+                                    Rotation = rotation,
+                                    PerpedicularVector = perpedicularVector
                                 });
 
                             }
@@ -83,7 +90,7 @@ namespace OnPointDrafting
                 // Create text labels for block distances
                 foreach (var blockDistance in blockDistances)
                 {
-                    CreateTextAtBlockPosition(doc, trans, blockDistance.BlockReference, Convert.ToInt32(blockDistance.Distance));
+                    CreateTextAtBlockPosition(doc, trans, blockDistance.BlockReference, Convert.ToInt32(blockDistance.Distance), blockDistance.Rotation, blockDistance.PerpedicularVector);
                 }
 
                 // Commit the transaction
@@ -92,19 +99,29 @@ namespace OnPointDrafting
         }
 
         // Create MText at the given position
-        private void CreateTextAtBlockPosition(Document doc, Transaction trans, BlockReference blockRef, int station)
+        private void CreateTextAtBlockPosition(Document doc, Transaction trans, BlockReference blockRef, int station, double rotation, Vector3d perpendicularVector)
         {
             // Create MText
             MText mtext = new MText();
 
-            // Position the MText relative to the insertion point of the block reference
-            Point3d blockPosition = blockRef.Position;
-            Vector3d offset = new Vector3d(-5.0, 5.0, 0.0); // 5 units left and 5 units up from the insertion point
-            Point3d textPosition = blockPosition + offset;
-            mtext.Location = textPosition;
+            if (rotation == Math.PI)
+            {
+                // Position the MText relative to the insertion point of the block reference
+                Point3d blockPosition = blockRef.Position;
+                Vector3d offset = new Vector3d(-5.0, 3.0, 0.0); //  from the insertion point
+                Point3d textPosition = blockPosition + offset;
+                mtext.Location = textPosition;
+                mtext.Rotation = 0;
+            }
+            else
+            {
+                mtext.Location = GetInsertionPoint(blockRef.Position, perpendicularVector);
+                mtext.Rotation = rotation;
+            }
+            
             mtext.Layer = "NPLT";
             mtext.TextHeight = 2.0;
-            mtext.Attachment = AttachmentPoint.BottomCenter;
+            mtext.Attachment = AttachmentPoint.MiddleCenter;
             mtext.Contents = FormatStation(station);
 
             // Add MText to the current space
@@ -179,6 +196,31 @@ namespace OnPointDrafting
 
             return promptSelectionResult.Value;
         }
+        
+
+        private Vector3d GetPerpedicularVector(Polyline polyline, Point3d point3D)
+        {
+            Vector3d tanget = polyline.GetFirstDerivative(point3D);
+            return  tanget.RotateBy(Math.PI / 2.0, Vector3d.ZAxis);
+        }
+
+        private double VectorToAngle(Vector3d vector)
+        {
+            return Math.Atan2(vector.Y, vector.X);
+        }
+
+        private Point3d GetInsertionPoint(Point3d point, Vector3d vector)
+        {
+            double shiftDistance = 7.0;
+
+            Vector3d shiftVector =  vector.GetNormal() * shiftDistance;
+
+            MText mText = new MText();
+
+            mText.Location = point;
+
+            return mText.Location.Add(shiftVector);
+        }
 
     }
 
@@ -189,5 +231,7 @@ namespace OnPointDrafting
     {
         public BlockReference BlockReference { get; set; }
         public double Distance { get; set; }
+        public double Rotation { get; set; }
+        public Vector3d PerpedicularVector { get; set; }
     }
 }
